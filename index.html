@@ -1294,6 +1294,16 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                                                <div class="w-11 h-6 bg-slate-300 dark:bg-slate-600 rounded-full peer peer-checked:after:translate-x-5 rtl:peer-checked:after:-translate-x-5 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-[var(--color-surface)] after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-500 peer-checked:bg-primary"></div>
                                            </label>
                                        </div>
+                                       <div class="flex items-center justify-between pt-3 mt-1 border-t border-indigo-100 dark:border-indigo-900/40">
+                                           <div class="pe-3">
+                                               <span class="text-sm font-bold text-indigo-700 dark:text-indigo-300 block" data-i18n="multi_node_fanout_title">Multi-node config fan-out</span>
+                                               <span class="text-[11px] text-indigo-600/70 dark:text-indigo-300/60" data-i18n="multi_node_fanout_desc">When off (default), each user's sub-link only includes configs for the one panel they actually live on. When on, every user's sub-link includes configs for this panel AND every linked node combined (duplicates IPs/configs per node — traffic/IP counts will look doubled/multiplied).</span>
+                                           </div>
+                                           <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                                               <input type="checkbox" id="cfg-multi-node-fanout" onchange="window.nahanConfig.enableMultiNodeFanout = this.checked; doSaveDirectly();" class="sr-only peer">
+                                               <div class="w-11 h-6 bg-slate-300 dark:bg-slate-600 rounded-full peer peer-checked:after:translate-x-5 rtl:peer-checked:after:-translate-x-5 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-[var(--color-surface)] after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-500 peer-checked:bg-primary"></div>
+                                           </label>
+                                       </div>
                                    </div>
                                </div>
                            </div>
@@ -2290,6 +2300,7 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                     lbl_allow_sync:"Allow Sync",
                     other_nodes_title: "Other Nodes", other_nodes_desc: "External nodes (URL + API Key) for cross-panel management.",
                     auto_balance_title: "Auto-balance new users", auto_balance_desc: "When creating a user, automatically place it on whichever panel (this one or a linked node) currently has the fewest users.",
+                    multi_node_fanout_title: "Multi-node config fan-out", multi_node_fanout_desc: "When off (default), each user's sub-link only includes configs for the one panel they actually live on. When on, every user's sub-link includes configs for this panel AND every linked node combined (duplicates IPs/configs per node — traffic/IP counts will look doubled/multiplied).",
                     panel_loading: "Loading node users...",
                     remote_edit_title: "Edit Node Subscriber", remote_edit_desc: "This user lives on a linked node — only core fields are editable here.",
                     lbl_name: "Name", lbl_total_gb: "Total Limit (GB)", lbl_daily_gb: "Daily Limit (GB)", lbl_expiry_days: "Days Until Expiry", lbl_max_configs: "Max Configs", lbl_conn_limit: "Connection Limit", lbl_notes: "Notes", btn_save: "Save",
@@ -2462,6 +2473,7 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                      lbl_allow_sync:"اجازه همگام سازی",
                      other_nodes_title: "سایر نودها", other_nodes_desc: "نودهای خارجی (URL + کلید API) برای مدیریت بین پنل‌ها.",
                      auto_balance_title: "متعادل‌سازی خودکار کاربران جدید", auto_balance_desc: "هنگام ساخت کاربر جدید، به‌طور خودکار روی پنلی (همین پنل یا یکی از نودهای متصل) ساخته می‌شود که در حال حاضر کمترین تعداد کاربر را دارد.",
+                     multi_node_fanout_title: "پخش کانفیگ روی چند نود", multi_node_fanout_desc: "در حالت خاموش (پیش‌فرض)، ساب‌لینک هر کاربر فقط شامل کانفیگ‌های همان پنلی می‌شود که کاربر واقعاً روی آن ساخته شده. در حالت روشن، ساب‌لینک هر کاربر شامل کانفیگ‌های این پنل به‌علاوه همه‌ی نودهای متصل می‌شود (آی‌پی/کانفیگ برای هر نود تکرار می‌شود و مصرف/تعداد آی‌پی چند برابر به نظر می‌رسد).",
                      panel_loading: "در حال دریافت کاربران نود...",
                      remote_edit_title: "ویرایش کاربر نود", remote_edit_desc: "این کاربر روی یک نود متصل قرار دارد — فقط فیلدهای اصلی از اینجا قابل ویرایش هستند.",
                      lbl_name: "نام", lbl_total_gb: "سقف کل (گیگابایت)", lbl_daily_gb: "سقف روزانه (گیگابایت)", lbl_expiry_days: "روز باقی‌مانده تا انقضا", lbl_max_configs: "حداکثر تعداد کانفیگ", lbl_conn_limit: "محدودیت اتصال همزمان", lbl_notes: "یادداشت", btn_save: "ذخیره",
@@ -3611,6 +3623,7 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                       ]);
 
                       if (document.getElementById('cfg-auto-balance')) document.getElementById('cfg-auto-balance').checked = !!conf.autoBalanceNewUsers;
+                      if (document.getElementById('cfg-multi-node-fanout')) document.getElementById('cfg-multi-node-fanout').checked = !!conf.enableMultiNodeFanout;
 
                       window.nahanConfig = JSON.parse(JSON.stringify(conf));
                       window.nahanUsage = data.sysUsage || {};
