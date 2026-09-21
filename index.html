@@ -3839,11 +3839,19 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
               if (!sel) return;
               const panels = getLinkedPanelsForSelector();
               const localLabel = window.nahanLocalPanelName || (lang === 'fa' ? 'اصلی' : 'Main');
+              const autoLabel = lang === 'fa' ? 'خودکار (کم‌بارترین)' : 'Auto (least loaded)';
               const prevVal = sel.value || '__local__';
+              // AUTO only makes sense once there's at least one linked node
+              // to balance against - with zero linked panels it would be
+              // indistinguishable from Main, so it's left out of the list.
+              const autoOption = panels.length > 0
+                  ? '<option value="__auto__">🎯 ' + autoLabel + '</option>'
+                  : '';
               sel.innerHTML = '<option value="__local__">🏠 ' + localLabel + '</option>' +
+                  autoOption +
                   panels.map((p, i) => `<option value="${i}">🌐 ${(p.name || cleanPanelHost(p.url)).replace(/"/g,'&quot;')}</option>`).join('');
               // Keep the previous selection if that panel still exists, else fall back to local.
-              const stillExists = prevVal === '__local__' || panels[parseInt(prevVal)] !== undefined;
+              const stillExists = prevVal === '__local__' || prevVal === '__auto__' || panels[parseInt(prevVal)] !== undefined;
               sel.value = stillExists ? prevVal : '__local__';
               if (!stillExists) { window.nahanActivePanel = null; window.nahanRemoteUsers = null; }
           }
@@ -3852,12 +3860,30 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
               const addBtn = document.getElementById('btn-add-user-trigger');
               if (value === '__local__') {
                   window.nahanActivePanel = null;
+                  window.nahanAutoBalanceMode = false;
                   window.nahanRemoteUsers = null;
                   window.nahanRemoteUsage = null;
                   if (addBtn) addBtn.classList.remove('hidden');
                   renderUsersTable();
                   return;
               }
+              if (value === '__auto__') {
+                  // AUTO has no user list of its own - it's a placement
+                  // choice for the *next* user creation, not a panel to
+                  // browse. Keep showing the local (Main) list underneath,
+                  // same as before AUTO existed, but flag that the next
+                  // "Add New User" should ask the backend to pick the
+                  // least-loaded panel (see commitAddUser()) instead of
+                  // creating directly here.
+                  window.nahanActivePanel = null;
+                  window.nahanAutoBalanceMode = true;
+                  window.nahanRemoteUsers = null;
+                  window.nahanRemoteUsage = null;
+                  if (addBtn) addBtn.classList.remove('hidden');
+                  renderUsersTable();
+                  return;
+              }
+              window.nahanAutoBalanceMode = false;
               const panels = getLinkedPanelsForSelector();
               const p = panels[parseInt(value)];
               if (!p) return;
@@ -3876,9 +3902,27 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
               const loadingEl = document.getElementById('panel-selector-loading');
               const tbl = document.getElementById('tbl-users');
               if (loadingEl) loadingEl.classList.remove('hidden');
+              const debugUrl = `https://${panel.host}/${encodeURI(panel.apiRoute)}/api/users?key=${encodeURIComponent(panel.apiKey)}`;
               try {
-                  const res = await fetch(`https://${panel.host}/${encodeURI(panel.apiRoute)}/api/users?key=${encodeURIComponent(panel.apiKey)}`, { method: 'GET' });
-                  const data = await res.json();
+                  const res = await fetch(debugUrl, { method: 'GET' });
+                  let rawText = '';
+                  let data = null;
+                  try {
+                      rawText = await res.text();
+                      data = JSON.parse(rawText);
+                  } catch (parseErr) {
+                      window.nahanRemoteUsers = [];
+                      if (tbl) tbl.innerHTML = `<div class="col-span-full px-4 py-8 text-center text-red-400 text-xs" style="direction:ltr;text-align:left;word-break:break-all;">` +
+                          `<div style="font-weight:bold;margin-bottom:6px;">DEBUG: Non-JSON response</div>` +
+                          `<div>HTTP status: ${res.status}</div>` +
+                          `<div>URL: ${debugUrl}</div>` +
+                          `<div style="margin-top:6px;">Raw body (first 500 chars):</div>` +
+                          `<div style="white-space:pre-wrap;background:rgba(0,0,0,0.2);padding:6px;border-radius:6px;">${(rawText || '(empty)').slice(0,500).replace(/</g,'&lt;')}</div>` +
+                          `</div>`;
+                      if (loadingEl) loadingEl.classList.add('hidden');
+                      renderUsersTable();
+                      return;
+                  }
                   if (data && data.success) {
                       window.nahanRemoteUsers = data.users || [];
                       // The enriched /api/users response already carries per-user
@@ -3887,11 +3931,23 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                       window.nahanRemoteUsage = null;
                   } else {
                       window.nahanRemoteUsers = [];
-                      if (tbl) tbl.innerHTML = `<div class="col-span-full px-4 py-8 text-center text-red-400 text-sm">${(lang==='fa' ? 'اتصال به نود ناموفق بود: ' : 'Failed to reach node: ') + ((data && data.error) || 'Unknown error')}</div>`;
+                      if (tbl) tbl.innerHTML = `<div class="col-span-full px-4 py-8 text-center text-red-400 text-xs" style="direction:ltr;text-align:left;word-break:break-all;">` +
+                          `<div style="font-weight:bold;margin-bottom:6px;">DEBUG: Server returned success=false</div>` +
+                          `<div>HTTP status: ${res.status}</div>` +
+                          `<div>URL: ${debugUrl}</div>` +
+                          `<div style="margin-top:6px;">error field: ${(data && data.error) || '(none)'}</div>` +
+                          `<div style="margin-top:6px;">Full response:</div>` +
+                          `<div style="white-space:pre-wrap;background:rgba(0,0,0,0.2);padding:6px;border-radius:6px;">${JSON.stringify(data).slice(0,500).replace(/</g,'&lt;')}</div>` +
+                          `</div>`;
                   }
               } catch (e) {
                   window.nahanRemoteUsers = [];
-                  if (tbl) tbl.innerHTML = `<div class="col-span-full px-4 py-8 text-center text-red-400 text-sm">${(lang==='fa' ? 'خطای شبکه در اتصال به نود.' : 'Network error reaching node.')}</div>`;
+                  if (tbl) tbl.innerHTML = `<div class="col-span-full px-4 py-8 text-center text-red-400 text-xs" style="direction:ltr;text-align:left;word-break:break-all;">` +
+                      `<div style="font-weight:bold;margin-bottom:6px;">DEBUG: fetch() threw (this is the classic CORS-block signature)</div>` +
+                      `<div>URL: ${debugUrl}</div>` +
+                      `<div style="margin-top:6px;">Error name: ${e && e.name}</div>` +
+                      `<div>Error message: ${e && e.message}</div>` +
+                      `</div>`;
               }
               if (loadingEl) loadingEl.classList.add('hidden');
               renderUsersTable();
@@ -4792,7 +4848,65 @@ function buildPortCheckboxes(wrapId, selectedPorts) {
                      createdAt: Date.now()
                 };
 
+              // AUTO mode: let the backend's pickLeastLoadedPanel() decide
+              // whether this user belongs on this panel or a linked node,
+              // instead of unconditionally pushing to the local in-memory
+              // users array below. This goes through the same /api/users
+              // POST endpoint remote-panel actions already use, just
+              // pointed at this panel's own origin, with forceAutoBalance
+              // so it balances even if the global autoBalanceNewUsers
+              // toggle in Settings is off.
+              if (window.nahanAutoBalanceMode) {
+                  commitAddUserViaAutoBalance(u);
+                  return;
+              }
+
               window.nahanConfig.users.push(u);
+              finishAddUserUI(u);
+          }
+
+          async function commitAddUserViaAutoBalance(u) {
+              const apiRoute = (window.nahanConfig && window.nahanConfig.apiRoute) || 'api';
+              const apiKey = (window.nahanConfig && window.nahanConfig.syncApiKey) || '';
+              const payload = {
+                  name: u.name, trafficLimit: u.limitTotalReq ? (u.limitTotalReq / 6000) : null,
+                  dailyLimit: u.limitDailyReq ? (u.limitDailyReq / 6000) : null,
+                  expiryDays: u.expiryMs ? Math.ceil((u.expiryMs - Date.now()) / 86400000) : null,
+                  proxyIp: u.proxyIp, cleanIp: u.cleanIp, customName: u.customName,
+                  userMode: u.userMode, userPorts: u.userPorts, maxConfigs: u.maxConfigs,
+                  userNodes: u.userNodes, nat64: u.nat64, connLimit: u.connLimit,
+                  userPanelUrl: u.userPanelUrl, countryFilter: u.countryFilter,
+                  forceAutoBalance: true,
+              };
+              try {
+                  const res = await fetch(`${location.origin}/${encodeURI(apiRoute)}/api/users?key=${encodeURIComponent(apiKey)}`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify(payload),
+                  });
+                  const data = await res.json();
+                  if (!data || !data.success) {
+                      showToast(lang === 'fa' ? ('خطا در ساخت کاربر: ' + ((data && data.error) || 'نامشخص')) : ('Failed to create user: ' + ((data && data.error) || 'unknown')), 'error');
+                      return;
+                  }
+                  // The backend may have created this on a remote node
+                  // rather than here, so refresh from the server instead
+                  // of assuming it landed in the local in-memory list.
+                  // Sub link intentionally not auto-copied/toasted here:
+                  // unlike the local-creation path, we don't reliably know
+                  // which host (this panel or the chosen node) the user
+                  // actually ended up on to build a correct subscription
+                  // URL, so finishAddUserUI() below just closes the form
+                  // and refreshes the list instead of copying a link.
+                  showToast(lang === 'fa' ? `✅ کاربر ${u.name} به‌صورت خودکار ساخته شد` : `✅ User ${u.name} auto-placed`, 'success');
+                  finishAddUserUI(u, true);
+                  if (typeof doLogin === 'function') doLogin(true);
+              } catch (e) {
+                  showToast(lang === 'fa' ? 'خطای شبکه در ساخت کاربر' : 'Network error creating user', 'error');
+              }
+          }
+
+          function finishAddUserUI(u, skipLocalCopyLink) {
               document.getElementById('view-add-user').classList.add('hidden');
               document.getElementById('view-users').classList.remove('hidden');
               var sc = document.querySelector('.scroll-content');
@@ -4815,12 +4929,16 @@ function buildPortCheckboxes(wrapId, selectedPorts) {
               document.getElementById('add-user-panel-url').value = '';
 
               renderUsersTable();
-              doSaveDirectly();
-              clearAddUserDraft();
-              // Show subscription link toast
-              const subUrl = `${location.origin}/${newId}`;
-              navigator.clipboard.writeText(subUrl).catch(() => {});
-              showToast(lang === 'fa' ? `✅ کاربر ${name} ذخیره شد! لینک ساب کپی شد` : `✅ User ${name} saved! Sub link copied`, 'success');
+              if (!skipLocalCopyLink) {
+                  doSaveDirectly();
+                  clearAddUserDraft();
+                  // Show subscription link toast
+                  const subUrl = `${location.origin}/${u.id}`;
+                  navigator.clipboard.writeText(subUrl).catch(() => {});
+                  showToast(lang === 'fa' ? `✅ کاربر ${u.name} ذخیره شد! لینک ساب کپی شد` : `✅ User ${u.name} saved! Sub link copied`, 'success');
+              } else {
+                  clearAddUserDraft();
+              }
           }
 
           function editUser(uuid) {
