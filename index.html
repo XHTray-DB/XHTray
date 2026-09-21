@@ -2254,6 +2254,7 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                   lbl_fixed_proxy_count: "Fixed Proxy IP Count (all users)", desc_fixed_proxy_count: "If greater than 0, every user gets this many random IPs picked from the GitHub pool below, and the user-level Proxy IP field is disabled. Set to 0 to disable this mode.",
                   lbl_clean_pool_url: "Clean IP Pool URL", lbl_proxy_pool_url: "Proxy IP Pool URL",
                   lbl_fixed_count_unit: "IPs per user", note_fixed_ip_locked: "Locked: fixed IP mode is enabled from Advanced settings",
+                  note_global_override_locked: "Locked: follows this panel's global setting",
                   adv_frag_title: "Anti-Filtering Fragment", adv_frag_subtitle: "Splits connection packets for guaranteed bypass",
                   desc_frag_global: "Applied globally to every user. The per-user fragment field in the edit form will be disabled.",
                   lbl_frag_len: "Fragment Length", lbl_frag_int: "Fragment Interval (ms)", lbl_frag_presets: "Suggested fragment presets per carrier (click to apply):",
@@ -2374,6 +2375,7 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                   lbl_fixed_proxy_count: "تعداد ثابت Proxy IP (برای همه کاربران)", desc_fixed_proxy_count: "اگر بزرگ‌تر از صفر باشد، برای هر کاربر همین تعداد آی‌پی به‌صورت رندوم از مخزن گیت‌هاب زیر انتخاب می‌شود و فیلد Proxy IP کاربران غیرفعال می‌شود. برای غیرفعال کردن این حالت، عدد را صفر بگذارید.",
                   lbl_clean_pool_url: "آدرس استخر Clean IP", lbl_proxy_pool_url: "آدرس استخر Proxy IP",
                   lbl_fixed_count_unit: "آی‌پی برای هر کاربر", note_fixed_ip_locked: "قفل شده: حالت آی‌پی ثابت از بخش تنظیمات پیشرفته فعال است",
+                  note_global_override_locked: "قفل شده: از تنظیمات سراسری این پنل پیروی می‌کند",
                   adv_frag_title: "فرگمنت ضد فیلترینگ", adv_frag_subtitle: "تجزیه پکت‌های اتصال برای عبور تضمینی",
                   desc_frag_global: "این تنظیمات به‌صورت سراسری برای تمام کاربران اعمال می‌شود و فیلد فرگمنت در فرم ویرایش کاربر غیرفعال خواهد شد.",
                   lbl_frag_len: "طول فرگمنت (Length)", lbl_frag_int: "بازه فرگمنت (Interval ms)", lbl_frag_presets: "تنظیمات پیشنهادی فرگمنت برای اپراتورها (کلیک برای اعمال خودکار):",
@@ -4501,6 +4503,112 @@ function applyFixedIpLockUI() {
     setUserIpFieldsLocked('add', cleanLocked, proxyLocked);
     setUserIpFieldsLocked('edit', cleanLocked, proxyLocked);
 }
+// Locks every per-user field in the edit-user form except name, custom
+// config name, traffic/daily limits, expiry days, and country filter
+// (those stay editable per admin request). Every other field is forced
+// to follow this panel's global settings so a node's users can't drift
+// from the master's config - the mismatch was the root cause behind the
+// "user distribution rule isn't respected" complaints. This only runs
+// for the *local* edit-user form (editUser()); openRemoteEditModal()'s
+// smaller modal already only exposes name/limits/days/notes and is left
+// untouched. Called once from editUser() after it populates the form
+// with the user's saved values, so this simply overrides that afterwards.
+function applyGlobalOverrideLockUI() {
+    const noteText = (i18n[lang] || i18n['en']).note_global_override_locked
+        || 'Locked: follows this panel\'s global setting';
+    const lockNote = (afterEl, wrapId) => {
+        let note = document.getElementById(wrapId + '-global-locked-note');
+        if (!note) {
+            note = document.createElement('p');
+            note.id = wrapId + '-global-locked-note';
+            note.className = 'text-[11px] text-amber-500 font-bold mt-1';
+            if (afterEl && afterEl.parentElement) afterEl.parentElement.appendChild(note);
+        }
+        note.innerText = '🔒 ' + noteText;
+        note.style.display = '';
+    };
+
+    // Clean IP: force-empty and disabled, independent of the fixed-IP-pool
+    // toggle (isFixedCleanIpActive) that setUserIpFieldsLocked() checks -
+    // per the new rule, this field is always locked in the edit-user form
+    // regardless of that separate setting. Add-user form is untouched.
+    const cleanTa = document.getElementById('edit-user-custom-clean');
+    if (cleanTa) { cleanTa.value = ''; cleanTa.disabled = true; }
+    const cleanHelperIp = document.getElementById('edit-user-helper-ip');
+    const cleanHelperName = document.getElementById('edit-user-helper-name');
+    if (cleanHelperIp) cleanHelperIp.disabled = true;
+    if (cleanHelperName) cleanHelperName.disabled = true;
+    const cleanWrap = document.getElementById('edit-user-clean-ips-wrap');
+    if (cleanWrap) {
+        cleanWrap.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.checked = false; cb.disabled = true; });
+        lockNote(cleanTa, 'edit-user-clean-ips-wrap');
+    }
+
+    // Connection limit: no global equivalent exists in this panel, so
+    // there is nothing meaningful to "follow" - lock it empty
+    // (unlimited) rather than read from a field that doesn't exist.
+    const connLimitEl = document.getElementById('edit-user-conn-limit');
+    if (connLimitEl) { connLimitEl.value = ''; connLimitEl.disabled = true; lockNote(connLimitEl, 'edit-user-conn-limit'); }
+
+    // Proxy IP: force-empty and disabled - user always inherits the
+    // panel's global backupRelay pool at request time, no per-user
+    // override.
+    const proxyTa = document.getElementById('edit-user-custom-proxy');
+    if (proxyTa) { proxyTa.value = ''; proxyTa.disabled = true; }
+    const proxyWrap = document.getElementById('edit-user-proxy-ips-wrap');
+    if (proxyWrap) {
+        proxyWrap.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.checked = false; cb.disabled = true; });
+        lockNote(proxyTa, 'edit-user-proxy-ips-wrap');
+    }
+
+    // Assigned nodes: force-empty and disabled. This is what makes the
+    // multi-node fan-out patch's default (enableMultiNodeFanout: false)
+    // actually stick per-user - an admin can no longer override a
+    // specific user back onto multiple nodes via this form.
+    const nodesTa = document.getElementById('edit-user-custom-nodes');
+    if (nodesTa) { nodesTa.value = ''; nodesTa.disabled = true; }
+    const nodesWrap = document.getElementById('edit-user-nodes-wrap');
+    if (nodesWrap) {
+        nodesWrap.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.checked = false; cb.disabled = true; });
+        lockNote(nodesTa, 'edit-user-nodes-wrap');
+    }
+
+    // Primary panel URL: no per-user override, always this panel.
+    const panelUrlEl = document.getElementById('edit-user-panel-url');
+    if (panelUrlEl) { panelUrlEl.value = ''; panelUrlEl.disabled = true; lockNote(panelUrlEl, 'edit-user-panel-url'); }
+
+    // NAT64 prefix: follow the global value from Settings (cfg-nat64 /
+    // nat64Prefix) rather than allowing a per-user override.
+    const nat64El = document.getElementById('edit-user-nat64');
+    if (nat64El) {
+        nat64El.value = (window.nahanConfig && window.nahanConfig.nat64Prefix) || '';
+        nat64El.disabled = true;
+        lockNote(nat64El, 'edit-user-nat64');
+    }
+
+    // Protocol (VLESS/Trojan): re-run buildModeCheckboxes with no
+    // per-user override so it shows exactly the global mode, then
+    // disable every checkbox so it can't be changed per user.
+    buildModeCheckboxes('edit-user-mode-wrap', null);
+    const modeWrap = document.getElementById('edit-user-mode-wrap');
+    if (modeWrap) {
+        modeWrap.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.disabled = true; });
+        lockNote(modeWrap, 'edit-user-mode-wrap');
+    }
+
+    // Ports: same approach - rebuild from global ports only, then lock.
+    buildPortCheckboxes('edit-user-ports-wrap', null);
+    const portsWrap = document.getElementById('edit-user-ports-wrap');
+    if (portsWrap) {
+        portsWrap.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.disabled = true; });
+        lockNote(portsWrap, 'edit-user-ports-wrap');
+    }
+
+    // Max configs: no global equivalent in this panel - lock empty
+    // (unlimited), same reasoning as connLimit above.
+    const maxConfigsEl = document.getElementById('edit-user-max-configs');
+    if (maxConfigsEl) { maxConfigsEl.value = ''; maxConfigsEl.disabled = true; lockNote(maxConfigsEl, 'edit-user-max-configs'); }
+}
 function applyFragPreset(len, interval) {
     const lenEl = document.getElementById('cfg-frag-len');
     const intEl = document.getElementById('cfg-frag-int');
@@ -4792,6 +4900,8 @@ function buildPortCheckboxes(wrapId, selectedPorts) {
                   daysLeft = diff > 0 ? Math.ceil(diff / 86400000) : 0;
               }
               document.getElementById('edit-user-days').value = daysLeft;
+
+              applyGlobalOverrideLockUI();
 
               document.getElementById('view-users').classList.add('hidden');
               document.getElementById('view-edit-user').classList.remove('hidden');
