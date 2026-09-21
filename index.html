@@ -3782,26 +3782,54 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                       if (Array.isArray(window.nahanConfig?.linkedPanels) && window.nahanConfig.linkedPanels.length > 0) {
                           const sc = payload.config;
                           const slaveCfg = { ...sc };
+                          // Telegram and Cloudflare settings are per-deployment
+                          // and never shared with linked nodes.
                           delete slaveCfg.tgToken; delete slaveCfg.tgChatId; delete slaveCfg.tgAdminId; delete slaveCfg.tgBotLang;
                           delete slaveCfg.cfAccountId; delete slaveCfg.cfApiToken; delete slaveCfg.cfWorkerName;
+                          // Each node's own identity/keys and its own node
+                          // list stay local - never overwritten by the master.
                           delete slaveCfg.panelApiKeys; delete slaveCfg.linkedPanels; delete slaveCfg.slaveNodes; delete slaveCfg.syncApiKey;
-                          delete slaveCfg.masterKey; delete slaveCfg.apiRoute; delete slaveCfg.deviceId; delete slaveCfg.hubPanelUrl; delete slaveCfg.githubRepo; delete slaveCfg.customPanelUrl;
+                          delete slaveCfg.deviceId; delete slaveCfg.hubPanelUrl; delete slaveCfg.githubRepo; delete slaveCfg.customPanelUrl;
                           // Each node owns its own independent user list - never
                           // let this client-side sync (separate from the
                           // backend's own fan-out) push the master's users
                           // onto a linked node and overwrite its list.
                           delete slaveCfg.users;
+                          // masterKey and apiRoute ARE intentionally included
+                          // here (not deleted) so the node's dashboard
+                          // password and dashboard path stay identical to
+                          // the master's, per user request. The fetch below
+                          // still targets the node at its CURRENT apiRoute
+                          // (pre-update) since that's the path that's valid
+                          // right now; the node applies the new apiRoute to
+                          // itself once this sync request lands.
                           const synced = new Set();
                           window.nahanConfig.linkedPanels.forEach(p => {
                               if (!p || !p.url || !p.apiKey) return;
                               const h = p.url.trim().replace(/^https?:\/\//, '').replace(/\/.*$/, '');
                               if (!h || synced.has(h.toLowerCase())) return;
                               synced.add(h.toLowerCase());
-                              fetch('https://' + h + '/' + encodeURIComponent(sc.apiRoute || 'sync') + '/api/sync', {
+                              fetch('https://' + h + '/' + encodeURIComponent(p.apiRoute || sc.apiRoute || 'sync') + '/api/sync', {
                                   method: 'POST',
                                   headers: { 'Content-Type': 'application/json' },
                                   body: JSON.stringify({ key: p.apiKey, config: slaveCfg, fromMaster: true })
-                              }).then(r => { if (!r.ok) console.error('Sync to ' + h + ' failed: HTTP ' + r.status); }).catch(e => { console.error('Sync to ' + h + ' error:', e.message); });
+                              }).then(async r => {
+                                  if (!r.ok) { console.error('Sync to ' + h + ' failed: HTTP ' + r.status); return; }
+                                  // The node applies masterKey/apiRoute from
+                                  // slaveCfg to itself and echoes back its
+                                  // resulting apiRoute as newRoute. Update
+                                  // this linkedPanels entry so the NEXT sync
+                                  // (and any /api/users fetch) keeps hitting
+                                  // the node at its now-current path instead
+                                  // of the stale pre-change one.
+                                  try {
+                                      const rd = await r.json();
+                                      if (rd && rd.newRoute && rd.newRoute !== p.apiRoute) {
+                                          p.apiRoute = rd.newRoute;
+                                          doSaveDirectly();
+                                      }
+                                  } catch (e) {}
+                              }).catch(e => { console.error('Sync to ' + h + ' error:', e.message); });
                           });
                       }
                       // Update local config with saved values
