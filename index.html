@@ -999,6 +999,28 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                           </div>
 
                           
+                          <!-- Section: Active Proxy Countries -->
+                          <div class="bg-[var(--color-surface)]  rounded-2xl border border-slate-200 dark:border-darkborder overflow-hidden" data-accordion="">
+                              <button onclick="toggleAccordion(this); loadProxyCountries();" class="w-full flex items-center justify-between px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                  <div class="flex items-center gap-3">
+                                      <span class="text-lg">🌍</span>
+                                      <span class="text-sm font-bold text-slate-700 dark:text-white" data-i18n="adv_proxy_countries">کشورهای فعال Proxy Pool</span>
+                                  </div>
+                                  <svg class="w-4 h-4 text-slate-400 transform transition-transform duration-200 accordion-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                              </button>
+                              <div data-accordion-content="" class="transition-all duration-300" style="max-height:0;overflow:hidden;visibility:hidden">
+                                  <div class="space-y-3 px-5 pb-5 pt-1">
+                                      <div class="flex items-center justify-between">
+                                          <p class="text-xs text-slate-400" data-i18n="desc_proxy_countries">کشورهایی که در حال حاضر در مخزن Proxy IP شناسایی شده‌اند و تعداد آی‌پی هر کدام.</p>
+                                          <button onclick="loadProxyCountries()" class="shrink-0 ms-2 text-[11px] px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" data-i18n="btn_refresh">بروزرسانی</button>
+                                      </div>
+                                      <div id="proxy-countries-list" class="space-y-1.5">
+                                          <div class="text-xs text-slate-400 py-2 text-center" data-i18n="loading_proxy_countries">در حال بارگذاری...</div>
+                                      </div>
+                                  </div>
+                              </div>
+                          </div>
+
                           <!-- Section: Custom Routing -->
                           <div class="bg-[var(--color-surface)]  rounded-2xl border border-slate-200 dark:border-darkborder overflow-hidden" data-accordion="">
                               <button onclick="toggleAccordion(this)" class="w-full flex items-center justify-between px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
@@ -2321,6 +2343,7 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                     format_obfuscated: "Obfuscated (UTF-8 + XOR)",
                      btn_redeploy_force: "Force Redeploy / Switch Format",
                     adv_network_dns: "Network & DNS", adv_proxy_relay: "Proxy & Relay", adv_subscription: "Subscription",
+                    adv_proxy_countries: "Active Proxy Pool Countries", desc_proxy_countries: "Countries currently identified in the Proxy IP pool and how many IPs each has.", loading_proxy_countries: "Loading...", no_proxy_countries: "No countries identified yet.", lbl_unresolved: "Unresolved", lbl_pool_total: "Total pool lines", btn_refresh: "Refresh",
                     adv_upstream_title: "Upstream VLESS", adv_upstream_badge: "Sing-Box / Clash",
                     adv_upstream_desc1: "<strong>What does this do?</strong><br>It lets you use a free VLESS server (from sites like RaceVPN or SSHMax) so all your traffic goes through that server. Your exit IP becomes the server's IP.",
                     adv_upstream_desc2: "<strong>Why is it useful?</strong><br>Sometimes you need an IP from a specific country (like Germany or USA) but don't want to buy a server. This lets you use that country's IP for free.",
@@ -2407,6 +2430,7 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                     format_obfuscated: "مبهم‌سازی شده (UTF-8 + XOR)",
                     btn_redeploy_force: "تفویض مجدد / تغییر قالب پنل",
                     adv_network_dns: "شبکه و DNS", adv_proxy_relay: "پروکسی و رله", adv_subscription: "اشتراک",
+                    adv_proxy_countries: "کشورهای فعال Proxy Pool", desc_proxy_countries: "کشورهایی که در حال حاضر در مخزن Proxy IP شناسایی شده‌اند و تعداد آی‌پی هر کدام.", loading_proxy_countries: "در حال بارگذاری...", no_proxy_countries: "هنوز هیچ کشوری شناسایی نشده.", lbl_unresolved: "شناسایی‌نشده", lbl_pool_total: "مجموع خطوط pool", btn_refresh: "بروزرسانی",
                     adv_upstream_title: "آپ‌استریم VLESS", adv_upstream_badge: "Sing-Box / Clash",
                     adv_upstream_desc1: "<strong>این بخش چیکار میکنه؟</strong><br>یه سرور رایگان VLESS (مثلاً از سایت‌هایی مثل RaceVPN یا SSHMax) به پنل معرفی می‌کنی تا تمام ترافیکت از اون سوراخ رد بشه. یعنی IP خروجیت میشه IP اون سرور.",
                     adv_upstream_desc2: "<strong>چرا لازمه؟</strong><br>بعضی وقتا به IP یه کشور خاص (مثلاً آلمان یا آمریکا) نیاز داری ولی نمی‌خوای سرور بخری. با این بخش می‌تونی رایگان از IP اون کشور استفاده کنی.",
@@ -3056,6 +3080,39 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                 }
             } catch (err) {
                 container.innerHTML = '<p class="text-sm text-red-400 text-center py-4">Error loading logs.</p>';
+            }
+        }
+
+        let proxyCountriesLoaded = false;
+        async function loadProxyCountries() {
+            const container = document.getElementById('proxy-countries-list');
+            if (!container) return;
+            container.innerHTML = '<div class="text-xs text-slate-400 py-2 text-center">' + (i18n[lang]?.loading_proxy_countries || 'در حال بارگذاری...') + '</div>';
+            try {
+                const res = await fetch(baseRoute + '/api/stats', { method: 'GET', headers: { 'Authorization': 'Bearer ' + sessionKey } });
+                const data = await res.json();
+                if (!data.success || !data.stats || !data.stats.proxyPool) {
+                    container.innerHTML = '<p class="text-xs text-red-400 text-center py-2">Failed to load pool stats.</p>';
+                    return;
+                }
+                const pool = data.stats.proxyPool;
+                const countries = Object.entries(pool.countries || {}).sort((a, b) => b[1].count - a[1].count);
+                if (countries.length === 0) {
+                    container.innerHTML = '<p class="text-xs text-slate-400 text-center py-2">' + (i18n[lang]?.no_proxy_countries || 'هنوز هیچ کشوری شناسایی نشده.') + '</p>';
+                    return;
+                }
+                let html = '';
+                countries.forEach(([code, info]) => {
+                    html += `<div class="flex items-center justify-between px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/50"><div class="flex items-center gap-2"><span>${info.flag || '🌐'}</span><span class="text-sm text-slate-700 dark:text-slate-200">${info.country || code}</span><span class="text-[10px] font-mono text-slate-400">${code}</span></div><span class="text-sm font-bold font-mono text-slate-600 dark:text-slate-300">${info.count}</span></div>`;
+                });
+                if (pool.unresolved > 0) {
+                    html += `<div class="flex items-center justify-between px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/30 opacity-70"><div class="flex items-center gap-2"><span>🌐</span><span class="text-sm text-slate-500 dark:text-slate-400">${i18n[lang]?.lbl_unresolved || 'شناسایی‌نشده'}</span></div><span class="text-sm font-bold font-mono text-slate-500">${pool.unresolved}</span></div>`;
+                }
+                html += `<p class="text-[10px] text-slate-400 mt-1 text-center">${i18n[lang]?.lbl_pool_total || 'مجموع خطوط pool'}: ${pool.totalLines}</p>`;
+                container.innerHTML = html;
+                proxyCountriesLoaded = true;
+            } catch (err) {
+                container.innerHTML = '<p class="text-xs text-red-400 text-center py-2">Error loading pool stats.</p>';
             }
         }
 
