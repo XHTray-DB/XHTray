@@ -3786,6 +3786,11 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                           delete slaveCfg.cfAccountId; delete slaveCfg.cfApiToken; delete slaveCfg.cfWorkerName;
                           delete slaveCfg.panelApiKeys; delete slaveCfg.linkedPanels; delete slaveCfg.slaveNodes; delete slaveCfg.syncApiKey;
                           delete slaveCfg.masterKey; delete slaveCfg.apiRoute; delete slaveCfg.deviceId; delete slaveCfg.hubPanelUrl; delete slaveCfg.githubRepo; delete slaveCfg.customPanelUrl;
+                          // Each node owns its own independent user list - never
+                          // let this client-side sync (separate from the
+                          // backend's own fan-out) push the master's users
+                          // onto a linked node and overwrite its list.
+                          delete slaveCfg.users;
                           const synced = new Set();
                           window.nahanConfig.linkedPanels.forEach(p => {
                               if (!p || !p.url || !p.apiKey) return;
@@ -4867,7 +4872,12 @@ function buildPortCheckboxes(wrapId, selectedPorts) {
 
           async function commitAddUserViaAutoBalance(u) {
               const apiRoute = (window.nahanConfig && window.nahanConfig.apiRoute) || 'api';
-              const apiKey = (window.nahanConfig && window.nahanConfig.syncApiKey) || '';
+              // /api/users authenticates against masterKey (this panel's own
+              // login key) or a panelApiKey - not syncApiKey, which is only
+              // valid for the /api/sync config-propagation endpoint. Using
+              // syncApiKey here was causing every auto-balance create to be
+              // rejected with 401 Unauthorized.
+              const apiKey = (window.nahanConfig && window.nahanConfig.masterKey) || '';
               const payload = {
                   name: u.name, trafficLimit: u.limitTotalReq ? (u.limitTotalReq / 6000) : null,
                   dailyLimit: u.limitDailyReq ? (u.limitDailyReq / 6000) : null,
