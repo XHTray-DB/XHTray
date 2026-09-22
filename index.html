@@ -775,15 +775,6 @@ html.dark select option {
                                   </div>
                               </div>
                               <div class="space-y-1 md:col-span-2">
-                                  <label class="block text-sm font-bold text-slate-600 dark:text-slate-300 ms-1" data-i18n="lbl_github_repo">GitHub Update Repository</label>
-                                  <input type="text" id="cfg-github-repo" placeholder="itsyebekhe/nahan" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-darkborder bg-slate-50 dark:bg-slate-800 focus:border-primary outline-none text-sm">
-                                  <div class="flex justify-start items-center gap-2 mt-2">
-                                      <button type="button" onclick="triggerManualRedeploy()" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold rounded-lg transition-colors border border-primary/20">
-                                          🔄 <span data-i18n="btn_redeploy_force">Force Redeploy / Switch Format</span>
-                                      </button>
-                                  </div>
-                              </div>
-                              <div class="space-y-1 md:col-span-2">
                                   <label class="block text-sm font-bold text-slate-600 dark:text-slate-300 ms-1" data-i18n="lbl_sub_ua">Custom Subscription User-Agent</label>
                                   <input type="text" id="cfg-sub-ua" placeholder="e.g. MySpecialUABypass" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-darkborder bg-slate-50 dark:bg-slate-800 focus:border-primary outline-none text-sm">
                                   <p class="text-xs text-slate-500 mt-1 ms-1" data-i18n="desc_sub_ua">Allow specific browser User-Agent containing this text to bypass camouflage and retrieve profile data directly in web browser.</p>
@@ -810,37 +801,77 @@ html.dark select option {
                                       </div>
                                   </label>
                                </div>
-                               <div class="space-y-3 md:col-span-2">
-                                   <label class="flex items-center justify-between bg-emerald-50 dark:bg-emerald-900/10 p-4 rounded-2xl border border-emerald-200 dark:border-emerald-900/30 cursor-pointer">
-                                       <div>
-                                           <span class="text-sm font-bold text-emerald-700 dark:text-emerald-400" data-i18n="lbl_auto_update">Auto-Update</span>
-                                           <p class="text-[10px] text-emerald-500/70 dark:text-emerald-400/60 mt-0.5">Automatically deploy when a new version is detected</p>
-                                       </div>
-                                       <div class="relative inline-flex items-center">
-                                           <input type="checkbox" id="cfg-auto-update" class="sr-only peer">
-                                           <div class="w-11 h-6 bg-slate-300 dark:bg-slate-600 rounded-full peer peer-checked:after:translate-x-5 rtl:peer-checked:after:-translate-x-5 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-[var(--color-surface)] after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-500 peer-checked:bg-emerald-500"></div>
-                                       </div>
-                                   </label>
-                                   <div id="auto-update-format-wrap" class="hidden">
-                                       <label class="block text-xs font-bold text-slate-500 mb-2" data-i18n="lbl_auto_update_format">Update Format</label>
-                                       <div class="flex gap-3">
-                                           <label class="flex-1 flex items-center gap-2 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-darkborder cursor-pointer hover:border-emerald-400 transition-colors">
-                                               <input type="radio" name="auto-update-format" value="normal" checked="" class="accent-emerald-500">
-                                               <div>
-                                               <span class="text-xs font-bold text-slate-700 dark:text-slate-300" data-i18n="format_normal_label">Normal</span>
-                                               <p class="text-[10px] text-slate-400" data-i18n="desc_format_normal">Standard _worker.js</p>
-                                               </div>
-                                           </label>
-                                           <label class="flex-1 flex items-center gap-2 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-darkborder cursor-pointer hover:border-emerald-400 transition-colors">
-                                               <input type="radio" name="auto-update-format" value="obfuscated" class="accent-emerald-500">
-                                               <div>
-                                               <span class="text-xs font-bold text-slate-700 dark:text-slate-300" data-i18n="format_obfuscated_label">Obfuscated</span>
-                                               <p class="text-[10px] text-slate-400" data-i18n="desc_format_obfuscated">XOR byte-shifting</p>
-                                               </div>
-                                           </label>
-                                       </div>
+                               <!-- Cron Interval (replaces the old GitHub Auto-Update block: this
+                                    is a modified fork, so the panel no longer pulls code from
+                                    GitHub. Instead this sets the Cloudflare Cron Trigger's
+                                    interval directly via the Cloudflare API, using the
+                                    Account ID / API Token / Worker Name fields below. ) -->
+                               <div class="space-y-3 md:col-span-2 bg-[var(--color-surface)]/70 backdrop-blur-xl rounded-3xl p-6 shadow-lg border border-white/20 dark:border-white/10">
+                                   <div>
+                                       <h3 class="text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                                           ⏱️ <span data-i18n="lbl_cron_interval">Cron Interval</span>
+                                       </h3>
+                                       <p class="text-xs text-slate-500 mt-1" data-i18n="desc_cron_interval">How often (in minutes) the background job runs - combined usage enforcement across linked panels/3X-UI, auto-disable checks, etc. Requires Cloudflare Account ID/API Token/Worker Name below to actually apply to the real Cron Trigger.</p>
                                    </div>
+                                   <div class="flex items-center gap-3">
+                                       <input type="number" id="cfg-cron-interval" min="1" max="59" placeholder="4" class="w-28 px-4 py-3 rounded-xl border border-slate-200 dark:border-darkborder bg-slate-50 dark:bg-slate-800 focus:border-primary outline-none text-sm font-mono">
+                                       <span class="text-xs text-slate-500" data-i18n="lbl_minutes">minutes</span>
+                                       <button type="button" onclick="applyCronInterval()" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold rounded-lg transition-colors border border-primary/20">
+                                           ✅ <span data-i18n="btn_apply">Apply</span>
+                                       </button>
+                                   </div>
+                                   <div id="cron-interval-status" class="text-xs"></div>
                                 </div>
+
+                                <!-- 3X-UI Integration -->
+                                <div class="space-y-3 md:col-span-2 bg-[var(--color-surface)]/70 backdrop-blur-xl rounded-3xl p-6 shadow-lg border border-white/20 dark:border-white/10">
+                                    <label class="flex items-center justify-between cursor-pointer">
+                                        <div>
+                                            <h3 class="text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                                                🔗 <span data-i18n="lbl_xui_integration">3X-UI Integration</span>
+                                            </h3>
+                                            <p class="text-[10px] text-slate-500 mt-0.5" data-i18n="desc_xui_integration">Mirror every new user to a 3X-UI inbound, include its config in the sub-link, and enforce ONE shared traffic quota across this panel + 3X-UI.</p>
+                                        </div>
+                                        <div class="relative inline-flex items-center">
+                                            <input type="checkbox" id="cfg-xui-enabled" class="sr-only peer">
+                                            <div class="w-11 h-6 bg-slate-300 dark:bg-slate-600 rounded-full peer peer-checked:after:translate-x-5 rtl:peer-checked:after:-translate-x-5 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-[var(--color-surface)] after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-500 peer-checked:bg-emerald-500"></div>
+                                        </div>
+                                    </label>
+                                    <div id="xui-fields-wrap" class="hidden space-y-3 pt-2">
+                                        <div class="space-y-1">
+                                            <label class="block text-xs font-bold text-slate-500 ms-1" data-i18n="lbl_xui_base_url">3X-UI Panel URL</label>
+                                            <input type="text" id="cfg-xui-base-url" placeholder="https://your-xui-panel.com/xp9k3panel" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-darkborder bg-slate-50 dark:bg-slate-800 focus:border-primary outline-none text-sm font-mono">
+                                        </div>
+                                        <div class="grid grid-cols-2 gap-3">
+                                            <div class="space-y-1">
+                                                <label class="block text-xs font-bold text-slate-500 ms-1" data-i18n="lbl_xui_username">Username</label>
+                                                <input type="text" id="cfg-xui-username" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-darkborder bg-slate-50 dark:bg-slate-800 focus:border-primary outline-none text-sm">
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="block text-xs font-bold text-slate-500 ms-1" data-i18n="lbl_xui_password">Password</label>
+                                                <div class="relative">
+                                                    <input type="password" id="cfg-xui-password" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-darkborder bg-slate-50 dark:bg-slate-800 focus:border-primary outline-none pe-12 text-sm">
+                                                    <button type="button" onclick="const n=document.getElementById('cfg-xui-password');n.type=n.type==='password'?'text':'password'" class="absolute inset-y-0 end-0 flex items-center px-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">👁️</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="space-y-1">
+                                            <label class="block text-xs font-bold text-slate-500 ms-1" data-i18n="lbl_xui_inbound_id">Inbound ID</label>
+                                            <input type="number" id="cfg-xui-inbound-id" placeholder="1" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-darkborder bg-slate-50 dark:bg-slate-800 focus:border-primary outline-none text-sm font-mono">
+                                            <p class="text-[10px] text-slate-400 mt-1" data-i18n="desc_xui_inbound_id">The inbound (in 3X-UI) that new users get added to. Find it in 3X-UI's Inbounds list.</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Legacy hidden fields kept for backward-compat with saved
+                                     configs and internal JS that still reads/writes them by ID;
+                                     the GitHub auto-update UI itself has been removed. -->
+                                <div class="hidden">
+                                    <input type="text" id="cfg-github-repo" value="itsyebekhe/nahan">
+                                    <input type="checkbox" id="cfg-auto-update">
+                                    <input type="radio" name="auto-update-format" value="normal" checked>
+                                </div>
+
 
                                 <!-- API Keys Management -->
                                 <div class="bg-[var(--color-surface)]/70 /70 backdrop-blur-xl rounded-3xl p-6 shadow-lg border border-white/20 dark:border-white/10 md:col-span-2 space-y-4">
@@ -999,28 +1030,6 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                           </div>
 
                           
-                          <!-- Section: Active Proxy Countries -->
-                          <div class="bg-[var(--color-surface)]  rounded-2xl border border-slate-200 dark:border-darkborder overflow-hidden" data-accordion="">
-                              <button onclick="toggleAccordion(this); loadProxyCountries();" class="w-full flex items-center justify-between px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                                  <div class="flex items-center gap-3">
-                                      <span class="text-lg">🌍</span>
-                                      <span class="text-sm font-bold text-slate-700 dark:text-white" data-i18n="adv_proxy_countries">کشورهای فعال Proxy Pool</span>
-                                  </div>
-                                  <svg class="w-4 h-4 text-slate-400 transform transition-transform duration-200 accordion-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                              </button>
-                              <div data-accordion-content="" class="transition-all duration-300" style="max-height:0;overflow:hidden;visibility:hidden">
-                                  <div class="space-y-3 px-5 pb-5 pt-1">
-                                      <div class="flex items-center justify-between">
-                                          <p class="text-xs text-slate-400" data-i18n="desc_proxy_countries">کشورهایی که در حال حاضر در مخزن Proxy IP شناسایی شده‌اند و تعداد آی‌پی هر کدام.</p>
-                                          <button onclick="loadProxyCountries()" class="shrink-0 ms-2 text-[11px] px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" data-i18n="btn_refresh">بروزرسانی</button>
-                                      </div>
-                                      <div id="proxy-countries-list" class="space-y-1.5">
-                                          <div class="text-xs text-slate-400 py-2 text-center" data-i18n="loading_proxy_countries">در حال بارگذاری...</div>
-                                      </div>
-                                  </div>
-                              </div>
-                          </div>
-
                           <!-- Section: Custom Routing -->
                           <div class="bg-[var(--color-surface)]  rounded-2xl border border-slate-200 dark:border-darkborder overflow-hidden" data-accordion="">
                               <button onclick="toggleAccordion(this)" class="w-full flex items-center justify-between px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
@@ -2343,7 +2352,6 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                     format_obfuscated: "Obfuscated (UTF-8 + XOR)",
                      btn_redeploy_force: "Force Redeploy / Switch Format",
                     adv_network_dns: "Network & DNS", adv_proxy_relay: "Proxy & Relay", adv_subscription: "Subscription",
-                    adv_proxy_countries: "Active Proxy Pool Countries", desc_proxy_countries: "Countries currently identified in the Proxy IP pool and how many IPs each has.", loading_proxy_countries: "Loading...", no_proxy_countries: "No countries identified yet.", lbl_unresolved: "Unresolved", lbl_pool_total: "Total pool lines", btn_refresh: "Refresh",
                     adv_upstream_title: "Upstream VLESS", adv_upstream_badge: "Sing-Box / Clash",
                     adv_upstream_desc1: "<strong>What does this do?</strong><br>It lets you use a free VLESS server (from sites like RaceVPN or SSHMax) so all your traffic goes through that server. Your exit IP becomes the server's IP.",
                     adv_upstream_desc2: "<strong>Why is it useful?</strong><br>Sometimes you need an IP from a specific country (like Germany or USA) but don't want to buy a server. This lets you use that country's IP for free.",
@@ -2374,6 +2382,11 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                     lbl_auto_update: "Auto-Update", desc_auto_update: "Automatically deploy when a new version is detected",
                     lbl_auto_update_format: "Update Format", format_normal_label: "Normal", format_obfuscated_label: "Obfuscated",
                     desc_format_normal: "Standard _worker.js", desc_format_obfuscated: "XOR byte-shifting",
+                    lbl_cron_interval: "Cron Interval", desc_cron_interval: "How often (in minutes) the background job runs - combined usage enforcement across linked panels/3X-UI, auto-disable checks, etc. Requires Cloudflare Account ID/API Token/Worker Name below to actually apply to the real Cron Trigger.",
+                    lbl_minutes: "minutes", btn_apply: "Apply",
+                    lbl_xui_integration: "3X-UI Integration", desc_xui_integration: "Mirror every new user to a 3X-UI inbound, include its config in the sub-link, and enforce ONE shared traffic quota across this panel + 3X-UI.",
+                    lbl_xui_base_url: "3X-UI Panel URL", lbl_xui_username: "Username", lbl_xui_password: "Password",
+                    lbl_xui_inbound_id: "Inbound ID", desc_xui_inbound_id: "The inbound (in 3X-UI) that new users get added to. Find it in 3X-UI's Inbounds list.",
                     lbl_prefix: "Custom Name Prefix", html_desc_prefix_note: "This prefix is injected where the <code class='bg-slate-100 dark:bg-slate-800/80 px-1 py-0.5 rounded text-rose-500 font-mono'>{PREFIX}</code> tag is used in your naming strategy.", lbl_clean_ips: "Clean IPs", lbl_proxy_ips: "Proxy IPs", lbl_assigned_nodes: "Assigned Nodes",
                     lbl_protocol_mode: "Protocol Mode", lbl_max_configs: "Max Configs",
                     desc_assigned_nodes: "Custom Nodes (comma/newline, empty = all nodes)",
@@ -2430,7 +2443,6 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                     format_obfuscated: "مبهم‌سازی شده (UTF-8 + XOR)",
                     btn_redeploy_force: "تفویض مجدد / تغییر قالب پنل",
                     adv_network_dns: "شبکه و DNS", adv_proxy_relay: "پروکسی و رله", adv_subscription: "اشتراک",
-                    adv_proxy_countries: "کشورهای فعال Proxy Pool", desc_proxy_countries: "کشورهایی که در حال حاضر در مخزن Proxy IP شناسایی شده‌اند و تعداد آی‌پی هر کدام.", loading_proxy_countries: "در حال بارگذاری...", no_proxy_countries: "هنوز هیچ کشوری شناسایی نشده.", lbl_unresolved: "شناسایی‌نشده", lbl_pool_total: "مجموع خطوط pool", btn_refresh: "بروزرسانی",
                     adv_upstream_title: "آپ‌استریم VLESS", adv_upstream_badge: "Sing-Box / Clash",
                     adv_upstream_desc1: "<strong>این بخش چیکار میکنه؟</strong><br>یه سرور رایگان VLESS (مثلاً از سایت‌هایی مثل RaceVPN یا SSHMax) به پنل معرفی می‌کنی تا تمام ترافیکت از اون سوراخ رد بشه. یعنی IP خروجیت میشه IP اون سرور.",
                     adv_upstream_desc2: "<strong>چرا لازمه؟</strong><br>بعضی وقتا به IP یه کشور خاص (مثلاً آلمان یا آمریکا) نیاز داری ولی نمی‌خوای سرور بخری. با این بخش می‌تونی رایگان از IP اون کشور استفاده کنی.",
@@ -2460,6 +2472,11 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                     lbl_auto_update: "بروزرسانی خودکار", desc_auto_update: "دپلوی خودکار هنگام شناسایی نسخه جدید",
                     lbl_auto_update_format: "قالب بروزرسانی", format_normal_label: "معمولی", format_obfuscated_label: "مبهم‌سازی شده",
                     desc_format_normal: "استاندارد _worker.js", desc_format_obfuscated: "جابجایی بایت XOR",
+                    lbl_cron_interval: "فاصله زمانی Cron", desc_cron_interval: "هر چند دقیقه یک‌بار کار پس‌زمینه اجرا بشه - شامل بررسی مصرف مشترک بین نودها/3X-UI، غیرفعال‌سازی خودکار و غیره. برای اعمال واقعی روی Cron Trigger، باید Account ID/API Token/Worker Name کلودفلر پایین‌تر پر شده باشه.",
+                    lbl_minutes: "دقیقه", btn_apply: "اعمال",
+                    lbl_xui_integration: "یکپارچگی 3X-UI", desc_xui_integration: "هر کاربر جدید رو روی یک inbound از 3X-UI هم بساز، کانفیگش رو به ساب‌لینک اضافه کن، و یک سقف مصرف مشترک بین این پنل و 3X-UI اعمال کن.",
+                    lbl_xui_base_url: "آدرس پنل 3X-UI", lbl_xui_username: "یوزرنیم", lbl_xui_password: "پسورد",
+                    lbl_xui_inbound_id: "شناسه Inbound", desc_xui_inbound_id: "اینباندی که کاربرهای جدید توش ساخته می‌شن. از لیست Inbounds توی 3X-UI پیداش کن.",
                     lbl_clean_ips: "آی‌پی‌های تمیز", lbl_proxy_ips: "آی‌پی‌های پروکسی", lbl_assigned_nodes: "نودهای اختصاصی",
                     lbl_protocol_mode: "پروتکل", lbl_max_configs: "حداکثر کانفیگ",
                     desc_assigned_nodes: "نودهای سفارشی (کاما/خط جدید، خالی = همه نودها)",
@@ -3083,39 +3100,6 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
             }
         }
 
-        let proxyCountriesLoaded = false;
-        async function loadProxyCountries() {
-            const container = document.getElementById('proxy-countries-list');
-            if (!container) return;
-            container.innerHTML = '<div class="text-xs text-slate-400 py-2 text-center">' + (i18n[lang]?.loading_proxy_countries || 'در حال بارگذاری...') + '</div>';
-            try {
-                const res = await fetch(baseRoute + '/api/stats', { method: 'GET', headers: { 'Authorization': 'Bearer ' + sessionKey } });
-                const data = await res.json();
-                if (!data.success || !data.stats || !data.stats.proxyPool) {
-                    container.innerHTML = '<p class="text-xs text-red-400 text-center py-2">Failed to load pool stats.</p>';
-                    return;
-                }
-                const pool = data.stats.proxyPool;
-                const countries = Object.entries(pool.countries || {}).sort((a, b) => b[1].count - a[1].count);
-                if (countries.length === 0) {
-                    container.innerHTML = '<p class="text-xs text-slate-400 text-center py-2">' + (i18n[lang]?.no_proxy_countries || 'هنوز هیچ کشوری شناسایی نشده.') + '</p>';
-                    return;
-                }
-                let html = '';
-                countries.forEach(([code, info]) => {
-                    html += `<div class="flex items-center justify-between px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/50"><div class="flex items-center gap-2"><span>${info.flag || '🌐'}</span><span class="text-sm text-slate-700 dark:text-slate-200">${info.country || code}</span><span class="text-[10px] font-mono text-slate-400">${code}</span></div><span class="text-sm font-bold font-mono text-slate-600 dark:text-slate-300">${info.count}</span></div>`;
-                });
-                if (pool.unresolved > 0) {
-                    html += `<div class="flex items-center justify-between px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/30 opacity-70"><div class="flex items-center gap-2"><span>🌐</span><span class="text-sm text-slate-500 dark:text-slate-400">${i18n[lang]?.lbl_unresolved || 'شناسایی‌نشده'}</span></div><span class="text-sm font-bold font-mono text-slate-500">${pool.unresolved}</span></div>`;
-                }
-                html += `<p class="text-[10px] text-slate-400 mt-1 text-center">${i18n[lang]?.lbl_pool_total || 'مجموع خطوط pool'}: ${pool.totalLines}</p>`;
-                container.innerHTML = html;
-                proxyCountriesLoaded = true;
-            } catch (err) {
-                container.innerHTML = '<p class="text-xs text-red-400 text-center py-2">Error loading pool stats.</p>';
-            }
-        }
-
         async function loadDashboard() {
             try {
                 const [statsRes, logsRes] = await Promise.all([
@@ -3437,6 +3421,14 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                   githubRepo: el('cfg-github-repo').value,
                   subUserAgent: el('cfg-sub-ua').value,
                   customPanelUrl: el('cfg-custom-panel-url').value,
+                  cronIntervalMinutes: el('cfg-cron-interval') ? (parseInt(el('cfg-cron-interval').value, 10) || 4) : 4,
+                  xui: {
+                      enabled: el('cfg-xui-enabled') ? el('cfg-xui-enabled').checked : false,
+                      baseUrl: el('cfg-xui-base-url') ? el('cfg-xui-base-url').value.trim() : '',
+                      username: el('cfg-xui-username') ? el('cfg-xui-username').value.trim() : '',
+                      password: el('cfg-xui-password') ? el('cfg-xui-password').value : '',
+                      inboundId: el('cfg-xui-inbound-id') && el('cfg-xui-inbound-id').value ? parseInt(el('cfg-xui-inbound-id').value, 10) : null,
+                  },
                   fakeConfigs: getFakeConfigsFromUI(),
                   linkedPanels: (window.nahanConfig && Array.isArray(window.nahanConfig.linkedPanels)) ? window.nahanConfig.linkedPanels : []
               };
@@ -3495,6 +3487,18 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                       mapId('cfg-github-repo', conf.githubRepo);
                       mapId('cfg-sub-ua', conf.subUserAgent);
                       mapId('cfg-custom-panel-url', conf.customPanelUrl);
+                      mapId('cfg-cron-interval', conf.cronIntervalMinutes || 4);
+                      if (conf.xui) {
+                          if (document.getElementById('cfg-xui-enabled')) {
+                              document.getElementById('cfg-xui-enabled').checked = !!conf.xui.enabled;
+                              const wrap = document.getElementById('xui-fields-wrap');
+                              if (wrap) wrap.classList.toggle('hidden', !conf.xui.enabled);
+                          }
+                          mapId('cfg-xui-base-url', conf.xui.baseUrl);
+                          mapId('cfg-xui-username', conf.xui.username);
+                          mapId('cfg-xui-password', conf.xui.password);
+                          mapId('cfg-xui-inbound-id', conf.xui.inboundId);
+                      }
 
                       if (conf.enableOpt1 !== undefined) document.getElementById('cfg-tfo').checked = conf.enableOpt1;
                       if (conf.enableOpt2 !== undefined) document.getElementById('cfg-ech').checked = conf.enableOpt2;
@@ -3676,6 +3680,18 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                       document.getElementById('cfg-name-prefix').value = conf.namePrefix || 'Core';
                       document.getElementById('cfg-sub-ua').value = conf.subUserAgent || '';
                       document.getElementById('cfg-custom-panel-url').value = conf.customPanelUrl || '';
+                      if (document.getElementById('cfg-cron-interval')) document.getElementById('cfg-cron-interval').value = conf.cronIntervalMinutes || 4;
+                      if (conf.xui) {
+                          if (document.getElementById('cfg-xui-enabled')) {
+                              document.getElementById('cfg-xui-enabled').checked = !!conf.xui.enabled;
+                              const xwrap = document.getElementById('xui-fields-wrap');
+                              if (xwrap) xwrap.classList.toggle('hidden', !conf.xui.enabled);
+                          }
+                          if (document.getElementById('cfg-xui-base-url')) document.getElementById('cfg-xui-base-url').value = conf.xui.baseUrl || '';
+                          if (document.getElementById('cfg-xui-username')) document.getElementById('cfg-xui-username').value = conf.xui.username || '';
+                          if (document.getElementById('cfg-xui-password')) document.getElementById('cfg-xui-password').value = conf.xui.password || '';
+                          if (document.getElementById('cfg-xui-inbound-id')) document.getElementById('cfg-xui-inbound-id').value = conf.xui.inboundId ?? '';
+                      }
                       renderFakeConfigs(conf.fakeConfigs || [
                           { name: "📊 {usage}", enabled: true },
                           { name: "📅 {expiry}", enabled: true }
@@ -3692,7 +3708,11 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                       renderPanelSelector();
                       renderUsersTable();
                       renderLinkedNodes();
-                      try { checkUpdate(); } catch(ue) { console.error(ue); }
+                      // checkUpdate() call removed: GitHub-based auto-update
+                      // was intentionally removed from this fork (see
+                      // handleUpdateApi on the worker side, which now only
+                      // handles action:"setCron"). The function below is
+                      // kept but no longer invoked automatically.
                        if (!silent) switchTab('overview');
 
                       ['cfg-proto','cfg-port','cfg-fp','cfg-ips','cfg-path', 'cfg-relay', 'cfg-custom-routing', 'cfg-name-strategy', 'cfg-name-prefix', 'cfg-sub-ua', 'cfg-custom-panel-url'].forEach(id => {
@@ -3712,6 +3732,13 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                           autoUpdateEl.addEventListener('change', () => {
                               const wrap = document.getElementById('auto-update-format-wrap');
                               if (wrap) wrap.classList.toggle('hidden', !autoUpdateEl.checked);
+                          });
+                      }
+                      const xuiEnabledEl = document.getElementById('cfg-xui-enabled');
+                      if (xuiEnabledEl) {
+                          xuiEnabledEl.addEventListener('change', () => {
+                              const xwrap = document.getElementById('xui-fields-wrap');
+                              if (xwrap) xwrap.classList.toggle('hidden', !xuiEnabledEl.checked);
                           });
                       }
                 const pCont = document.getElementById('dyn-profiles-container');
@@ -3815,6 +3842,14 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                                             githubRepo: el('cfg-github-repo').value,
                                             subUserAgent: el('cfg-sub-ua').value,
                                             customPanelUrl: el('cfg-custom-panel-url').value,
+                                            cronIntervalMinutes: el('cfg-cron-interval') ? (parseInt(el('cfg-cron-interval').value, 10) || 4) : 4,
+                                            xui: {
+                                                enabled: el('cfg-xui-enabled') ? el('cfg-xui-enabled').checked : false,
+                                                baseUrl: el('cfg-xui-base-url') ? el('cfg-xui-base-url').value.trim() : '',
+                                                username: el('cfg-xui-username') ? el('cfg-xui-username').value.trim() : '',
+                                                password: el('cfg-xui-password') ? el('cfg-xui-password').value : '',
+                                                inboundId: el('cfg-xui-inbound-id') && el('cfg-xui-inbound-id').value ? parseInt(el('cfg-xui-inbound-id').value, 10) : null,
+                                            },
                                             nameStrategy: el('cfg-name-strategy').value,
                                             namePrefix: el('cfg-name-prefix').value,
                                             fakeConfigs: getFakeConfigsFromUI(),
@@ -5543,27 +5578,39 @@ function buildPortCheckboxes(wrapId, selectedPorts) {
               }
           }
 
-          async function triggerManualRedeploy() {
-              const banner = document.getElementById('update-alert-banner');
-              if (!banner) return;
-
-              document.getElementById('update-alert-text').textContent = lang === 'fa'
-                  ? 'می‌توانید آخرین نسخه فعال را مجدداً دپلوی نموده یا بین نسخه معمولی و مبهم‌سازی شده جابجا شوید.'
-                  : 'You can redeploy the latest code or switch between Normal/Obfuscated version on the fly.';
-
-              banner.classList.remove('hidden');
-              banner.classList.add('flex');
-
-              if (!window._updateData) {
-                  window._updateData = { latest: CURRENT_VERSION, updateAvailable: false };
+          async function applyCronInterval() {
+              const statusEl = document.getElementById('cron-interval-status');
+              const input = document.getElementById('cfg-cron-interval');
+              if (!statusEl || !input) return;
+              const minutes = parseInt(input.value, 10);
+              if (!minutes || minutes < 1 || minutes > 59) {
+                  statusEl.className = 'text-xs text-red-500';
+                  statusEl.textContent = lang === 'fa' ? 'عدد بین ۱ تا ۵۹ وارد کنید.' : 'Enter a number between 1 and 59.';
+                  return;
               }
-
-              const repo = (document.getElementById('cfg-github-repo')?.value || window.nahanConfig?.githubRepo || 'itsyebekhe/nahan').replace('https://github.com/', '').replace('http://github.com/', '').trim();
-
-              showUpdateBanner(repo, CURRENT_VERSION);
-
-              switchTab('overview');
-              document.getElementById('update-alert-banner').scrollIntoView({ behavior: 'smooth' });
+              statusEl.className = 'text-xs text-slate-400';
+              statusEl.textContent = lang === 'fa' ? 'در حال اعمال...' : 'Applying...';
+              try {
+                  const hostName = new URL(window.location.href).hostname;
+                  const apiRoute = window.nahanConfig?.apiRoute || 'api';
+                  const res = await fetch(`https://${hostName}/${encodeURIComponent(apiRoute)}/api/update`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ key: window.nahanConfig?.masterKey || '', action: 'setCron', minutes })
+                  });
+                  const data = await res.json();
+                  if (data.success) {
+                      window.nahanConfig.cronIntervalMinutes = minutes;
+                      statusEl.className = 'text-xs text-emerald-500';
+                      statusEl.textContent = (lang === 'fa' ? '✅ اعمال شد: ' : '✅ Applied: ') + data.cron;
+                  } else {
+                      statusEl.className = 'text-xs text-red-500';
+                      statusEl.textContent = '❌ ' + (data.error || (lang === 'fa' ? 'خطای ناشناخته' : 'Unknown error'));
+                  }
+              } catch (e) {
+                  statusEl.className = 'text-xs text-red-500';
+                  statusEl.textContent = '❌ ' + e.message;
+              }
           }
 
           function parseMarkdown(md) {
