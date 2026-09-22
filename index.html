@@ -856,9 +856,9 @@ html.dark select option {
                                             </div>
                                         </div>
                                         <div class="space-y-1">
-                                            <label class="block text-xs font-bold text-slate-500 ms-1" data-i18n="lbl_xui_inbound_id">Inbound ID</label>
-                                            <input type="number" id="cfg-xui-inbound-id" placeholder="1" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-darkborder bg-slate-50 dark:bg-slate-800 focus:border-primary outline-none text-sm font-mono">
-                                            <p class="text-[10px] text-slate-400 mt-1" data-i18n="desc_xui_inbound_id">The inbound (in 3X-UI) that new users get added to. Find it in 3X-UI's Inbounds list.</p>
+                                            <label class="block text-xs font-bold text-slate-500 ms-1" data-i18n="lbl_xui_inbound_id">Inbound IDs</label>
+                                            <input type="text" id="cfg-xui-inbound-id" placeholder="1,3,5" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-darkborder bg-slate-50 dark:bg-slate-800 focus:border-primary outline-none text-sm font-mono">
+                                            <p class="text-[10px] text-slate-400 mt-1" data-i18n="desc_xui_inbound_id">One or more inbounds (in 3X-UI) that new users get added to, comma-separated (e.g. 1,3,5). Usage is summed across all of them. Find IDs in 3X-UI's Inbounds list.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -1722,6 +1722,17 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                                                <label class="block text-xs font-bold text-slate-500 mb-1" data-i18n="lbl_max_configs">حداکثر کانفیگ</span> <span class="text-[10px] font-normal text-slate-400">(اختیاری)</span></label>
                                                <input type="number" id="add-user-max-configs" placeholder="Unlimited" data-i18n-placeholder="unlimited" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-darkborder bg-slate-50 dark:bg-slate-800 focus:border-primary outline-none text-sm" data-i18n-placeholder="unlimited">
                                            </div>
+                                           <div id="add-user-xui-wrap" class="hidden">
+                                               <label class="flex items-center justify-between gap-2 cursor-pointer">
+                                                   <span class="text-xs font-bold text-slate-500" data-i18n="lbl_user_use_xui">ساخت روی 3X-UI هم</span>
+                                                   <div class="relative">
+                                                       <input type="checkbox" id="add-user-use-xui" class="sr-only peer">
+                                                       <div class="w-10 h-5 bg-slate-300 dark:bg-slate-600 rounded-full peer peer-checked:bg-amber-500 transition-colors"></div>
+                                                       <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow-sm transform peer-checked:translate-x-5 transition-transform"></div>
+                                                   </div>
+                                               </label>
+                                               <p class="text-[10px] text-slate-400 mt-1" data-i18n="desc_user_use_xui">فعال باشه یعنی این کاربر روی پنل 3X-UI هم ساخته می‌شه و مصرفش با این پنل جمع می‌شه</p>
+                                           </div>
                                        </div>
                                    </div>
                                </div>
@@ -1878,6 +1889,17 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                                            <div>
                                                <label class="block text-xs font-bold text-slate-500 mb-1" data-i18n="lbl_max_configs">حداکثر کانفیگ</span> <span class="text-[10px] font-normal text-slate-400">(اختیاری)</span></label>
                                                <input type="number" id="edit-user-max-configs" placeholder="Unlimited" data-i18n-placeholder="unlimited" class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-darkborder bg-slate-50 dark:bg-slate-800 focus:border-primary outline-none text-sm" data-i18n-placeholder="unlimited">
+                                           </div>
+                                           <div id="edit-user-xui-wrap" class="hidden">
+                                               <label class="flex items-center justify-between gap-2 cursor-pointer">
+                                                   <span class="text-xs font-bold text-slate-500" data-i18n="lbl_user_use_xui">ساخت روی 3X-UI هم</span>
+                                                   <div class="relative">
+                                                       <input type="checkbox" id="edit-user-use-xui" class="sr-only peer">
+                                                       <div class="w-10 h-5 bg-slate-300 dark:bg-slate-600 rounded-full peer peer-checked:bg-amber-500 transition-colors"></div>
+                                                       <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow-sm transform peer-checked:translate-x-5 transition-transform"></div>
+                                                   </div>
+                                               </label>
+                                               <p class="text-[10px] text-slate-400 mt-1" data-i18n="desc_user_use_xui">فعال باشه یعنی این کاربر روی پنل 3X-UI هم ساخته می‌شه و مصرفش با این پنل جمع می‌شه</p>
                                            </div>
                                        </div>
                                    </div>
@@ -2386,9 +2408,10 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                     lbl_minutes: "minutes", btn_apply: "Apply",
                     lbl_xui_integration: "3X-UI Integration", desc_xui_integration: "Mirror every new user to a 3X-UI inbound, include its config in the sub-link, and enforce ONE shared traffic quota across this panel + 3X-UI.",
                     lbl_xui_base_url: "3X-UI Panel URL", lbl_xui_username: "Username", lbl_xui_password: "Password",
-                    lbl_xui_inbound_id: "Inbound ID", desc_xui_inbound_id: "The inbound (in 3X-UI) that new users get added to. Find it in 3X-UI's Inbounds list.",
+                    lbl_xui_inbound_id: "Inbound IDs", desc_xui_inbound_id: "One or more inbounds (in 3X-UI) that new users get added to, comma-separated (e.g. 1,3,5). Usage is summed across all of them. Find IDs in 3X-UI's Inbounds list.",
                     lbl_prefix: "Custom Name Prefix", html_desc_prefix_note: "This prefix is injected where the <code class='bg-slate-100 dark:bg-slate-800/80 px-1 py-0.5 rounded text-rose-500 font-mono'>{PREFIX}</code> tag is used in your naming strategy.", lbl_clean_ips: "Clean IPs", lbl_proxy_ips: "Proxy IPs", lbl_assigned_nodes: "Assigned Nodes",
                     lbl_protocol_mode: "Protocol Mode", lbl_max_configs: "Max Configs",
+                    lbl_user_use_xui: "Also create on 3X-UI", desc_user_use_xui: "When on, this user is also created on the 3X-UI panel and their usage there is summed with this panel's.",
                     desc_assigned_nodes: "Custom Nodes (comma/newline, empty = all nodes)",
                     desc_nat64_user: "Optional. Converts IPv4 Proxy IPs to NAT64 IPv6 addresses.",
                     desc_proxy_ips: "Custom Proxy IPs (comma/newline)",
@@ -2476,9 +2499,10 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                     lbl_minutes: "دقیقه", btn_apply: "اعمال",
                     lbl_xui_integration: "یکپارچگی 3X-UI", desc_xui_integration: "هر کاربر جدید رو روی یک inbound از 3X-UI هم بساز، کانفیگش رو به ساب‌لینک اضافه کن، و یک سقف مصرف مشترک بین این پنل و 3X-UI اعمال کن.",
                     lbl_xui_base_url: "آدرس پنل 3X-UI", lbl_xui_username: "یوزرنیم", lbl_xui_password: "پسورد",
-                    lbl_xui_inbound_id: "شناسه Inbound", desc_xui_inbound_id: "اینباندی که کاربرهای جدید توش ساخته می‌شن. از لیست Inbounds توی 3X-UI پیداش کن.",
+                    lbl_xui_inbound_id: "شناسه‌های Inbound", desc_xui_inbound_id: "یک یا چند اینباند (توی 3X-UI) که کاربرهای جدید توشون ساخته می‌شن، با کاما جدا کن (مثلاً 1,3,5). مصرف روی همهٔ اون‌ها جمع می‌شه. شناسه‌ها رو از لیست Inbounds توی 3X-UI پیدا کن.",
                     lbl_clean_ips: "آی‌پی‌های تمیز", lbl_proxy_ips: "آی‌پی‌های پروکسی", lbl_assigned_nodes: "نودهای اختصاصی",
                     lbl_protocol_mode: "پروتکل", lbl_max_configs: "حداکثر کانفیگ",
+                    lbl_user_use_xui: "ساخت روی 3X-UI هم", desc_user_use_xui: "فعال باشه یعنی این کاربر روی پنل 3X-UI هم ساخته می‌شه و مصرفش با این پنل جمع می‌شه",
                     desc_assigned_nodes: "نودهای سفارشی (کاما/خط جدید، خالی = همه نودها)",
                     desc_nat64_user: "اختیاری. آی‌پی‌های پروکسی IPv4 را به آدرس‌های NAT64 IPv6 تبدیل می‌کند.",
                     desc_proxy_ips: "آی‌پی‌های پروکسی سفارشی (کاما/خط جدید)",
@@ -3394,6 +3418,33 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
               ];
           }
 
+          // Parses a comma-separated "1,3,5" string from the Inbound IDs
+          // field into an array of ints, e.g. [1, 3, 5]. Blanks/invalid
+          // entries are dropped; duplicates are removed.
+          function parseXuiInboundIds(raw) {
+              if (!raw) return [];
+              const seen = new Set();
+              raw.split(',').forEach((part) => {
+                  const n = parseInt(part.trim(), 10);
+                  if (!isNaN(n)) seen.add(n);
+              });
+              return Array.from(seen);
+          }
+
+          // Formats an inboundIds array back into "1,3,5" for the text
+          // field. Also accepts the old single-number `inboundId` shape
+          // for backward-compat when loading an older exported config.
+          function formatXuiInboundIds(xuiConf) {
+              if (!xuiConf) return '';
+              if (Array.isArray(xuiConf.inboundIds) && xuiConf.inboundIds.length > 0) {
+                  return xuiConf.inboundIds.join(',');
+              }
+              if (xuiConf.inboundId !== undefined && xuiConf.inboundId !== null && xuiConf.inboundId !== '') {
+                  return String(xuiConf.inboundId);
+              }
+              return '';
+          }
+
           // Export active page inputs configuration
           function exportConfig() {
               const el = id => document.getElementById(id);
@@ -3427,7 +3478,7 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                       baseUrl: el('cfg-xui-base-url') ? el('cfg-xui-base-url').value.trim() : '',
                       username: el('cfg-xui-username') ? el('cfg-xui-username').value.trim() : '',
                       password: el('cfg-xui-password') ? el('cfg-xui-password').value : '',
-                      inboundId: el('cfg-xui-inbound-id') && el('cfg-xui-inbound-id').value ? parseInt(el('cfg-xui-inbound-id').value, 10) : null,
+                      inboundIds: el('cfg-xui-inbound-id') ? parseXuiInboundIds(el('cfg-xui-inbound-id').value) : [],
                   },
                   fakeConfigs: getFakeConfigsFromUI(),
                   linkedPanels: (window.nahanConfig && Array.isArray(window.nahanConfig.linkedPanels)) ? window.nahanConfig.linkedPanels : []
@@ -3497,7 +3548,7 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                           mapId('cfg-xui-base-url', conf.xui.baseUrl);
                           mapId('cfg-xui-username', conf.xui.username);
                           mapId('cfg-xui-password', conf.xui.password);
-                          mapId('cfg-xui-inbound-id', conf.xui.inboundId);
+                          mapId('cfg-xui-inbound-id', formatXuiInboundIds(conf.xui));
                       }
 
                       if (conf.enableOpt1 !== undefined) document.getElementById('cfg-tfo').checked = conf.enableOpt1;
@@ -3690,7 +3741,16 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                           if (document.getElementById('cfg-xui-base-url')) document.getElementById('cfg-xui-base-url').value = conf.xui.baseUrl || '';
                           if (document.getElementById('cfg-xui-username')) document.getElementById('cfg-xui-username').value = conf.xui.username || '';
                           if (document.getElementById('cfg-xui-password')) document.getElementById('cfg-xui-password').value = conf.xui.password || '';
-                          if (document.getElementById('cfg-xui-inbound-id')) document.getElementById('cfg-xui-inbound-id').value = conf.xui.inboundId ?? '';
+                          if (document.getElementById('cfg-xui-inbound-id')) document.getElementById('cfg-xui-inbound-id').value = formatXuiInboundIds(conf.xui);
+                          // Per-user "also create on 3X-UI" toggle only makes
+                          // sense to show once 3X-UI is actually configured
+                          // (enabled + has inbound IDs) - otherwise there's
+                          // nothing for it to mirror onto.
+                          const xuiUserTogglesVisible = !!conf.xui.enabled && Array.isArray(conf.xui.inboundIds) && conf.xui.inboundIds.length > 0;
+                          const addXuiWrap = document.getElementById('add-user-xui-wrap');
+                          if (addXuiWrap) addXuiWrap.classList.toggle('hidden', !xuiUserTogglesVisible);
+                          const editXuiWrap = document.getElementById('edit-user-xui-wrap');
+                          if (editXuiWrap) editXuiWrap.classList.toggle('hidden', !xuiUserTogglesVisible);
                       }
                       renderFakeConfigs(conf.fakeConfigs || [
                           { name: "📊 {usage}", enabled: true },
@@ -3848,7 +3908,7 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                                                 baseUrl: el('cfg-xui-base-url') ? el('cfg-xui-base-url').value.trim() : '',
                                                 username: el('cfg-xui-username') ? el('cfg-xui-username').value.trim() : '',
                                                 password: el('cfg-xui-password') ? el('cfg-xui-password').value : '',
-                                                inboundId: el('cfg-xui-inbound-id') && el('cfg-xui-inbound-id').value ? parseInt(el('cfg-xui-inbound-id').value, 10) : null,
+                                                inboundIds: el('cfg-xui-inbound-id') ? parseXuiInboundIds(el('cfg-xui-inbound-id').value) : [],
                                             },
                                             nameStrategy: el('cfg-name-strategy').value,
                                             namePrefix: el('cfg-name-prefix').value,
@@ -4929,6 +4989,7 @@ function buildPortCheckboxes(wrapId, selectedPorts) {
                if (nodesCustom) nodesArray.push(...nodesCustom.split(/[\s,;]+/).map(s=>s.trim()).filter(Boolean));
                const userNodes = nodesArray.length ? nodesArray.join(',') : null;
                const nat64 = document.getElementById('edit-user-nat64').value.trim() || null;
+               const useXui = document.getElementById('add-user-use-xui') ? document.getElementById('add-user-use-xui').checked : false;
 
                if(!name) {
                    alert(lang === 'fa' ? 'لطفاً نام را وارد کنید' : 'Please enter a name');
@@ -4970,6 +5031,7 @@ function buildPortCheckboxes(wrapId, selectedPorts) {
                      connLimit: connLimit,
                      userPanelUrl: userPanelUrl,
                      countryFilter: addCountryFilter,
+                     useXui: useXui,
                      createdAt: Date.now()
                 };
 
@@ -5006,6 +5068,7 @@ function buildPortCheckboxes(wrapId, selectedPorts) {
                   userMode: u.userMode, userPorts: u.userPorts, maxConfigs: u.maxConfigs,
                   userNodes: u.userNodes, nat64: u.nat64, connLimit: u.connLimit,
                   userPanelUrl: u.userPanelUrl, countryFilter: u.countryFilter,
+                  useXui: u.useXui,
                   forceAutoBalance: true,
               };
               try {
@@ -5057,6 +5120,7 @@ function buildPortCheckboxes(wrapId, selectedPorts) {
               document.getElementById('add-user-max-configs').value = '';
               document.getElementById('add-user-conn-limit').value = '';
               document.getElementById('add-user-panel-url').value = '';
+              if (document.getElementById('add-user-use-xui')) document.getElementById('add-user-use-xui').checked = false;
 
               renderUsersTable();
               if (!skipLocalCopyLink) {
@@ -5138,6 +5202,7 @@ function buildPortCheckboxes(wrapId, selectedPorts) {
               document.getElementById('edit-user-max-configs').value = u.maxConfigs || '';
               document.getElementById('edit-user-conn-limit').value = u.connLimit || '';
               document.getElementById('edit-user-panel-url').value = u.userPanelUrl || '';
+              if (document.getElementById('edit-user-use-xui')) document.getElementById('edit-user-use-xui').checked = !!u.useXui;
 
               buildPortCheckboxes('edit-user-ports-wrap', u.userPorts);
               buildModeCheckboxes('edit-user-mode-wrap', u.userMode);
@@ -5279,6 +5344,7 @@ function buildPortCheckboxes(wrapId, selectedPorts) {
                 let connLimit = document.getElementById('edit-user-conn-limit').value;
                 connLimit = connLimit ? parseInt(connLimit) : null;
                 const userPanelUrl = document.getElementById('edit-user-panel-url').value.trim() || null;
+                const useXui = document.getElementById('edit-user-use-xui') ? document.getElementById('edit-user-use-xui').checked : false;
 
                if(!name) {
                   alert(lang === 'fa' ? 'لطفاً نام را وارد کنید' : 'Please enter a name');
@@ -5313,6 +5379,7 @@ function buildPortCheckboxes(wrapId, selectedPorts) {
               u.nat64 = nat64;
               u.connLimit = connLimit;
               u.userPanelUrl = userPanelUrl;
+              u.useXui = useXui;
 
               document.getElementById('view-edit-user').classList.add('hidden');
               document.getElementById('view-users').classList.remove('hidden');
