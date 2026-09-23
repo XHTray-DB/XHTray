@@ -1151,6 +1151,11 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                                           <label class="block text-xs font-bold text-slate-500 dark:text-slate-400" data-i18n="lbl_tls_mask">TLS Mask (Custom SNI / Host)</label>
                                           <input type="text" id="cfg-tls-mask" placeholder="www.speedtest.net" dir="ltr" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-darkborder bg-slate-50 dark:bg-slate-800 focus:border-primary focus:ring-1 outline-none text-[11px] font-mono">
                                       </div>
+                                      <div class="space-y-1">
+                                          <label class="block text-xs font-bold text-slate-500 dark:text-slate-400" data-i18n="lbl_sni_list">Custom SNI List (one per line — builds a config per SNI)</label>
+                                          <textarea id="cfg-sni-list" rows="3" placeholder="sni1.example.com&#10;sni2.example.com&#10;sni3.example.com" dir="ltr" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-darkborder bg-slate-50 dark:bg-slate-800 focus:border-primary focus:ring-1 outline-none text-[11px] font-mono resize-none"></textarea>
+                                          <p class="text-[10px] text-slate-400 dark:text-slate-500" data-i18n="hint_sni_list">این لیست فقط روی همین نود اعمال میشه و موقع Sync به نودهای دیگه ارسال نمیشه.</p>
+                                      </div>
                                   </div>
                               </div>
                           </div>
@@ -2316,6 +2321,7 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                   adv_optimize_title: "Advanced Optimization Settings", adv_optimize_badge: "Important",
                   desc_optimize_global: "Applied globally to every user. Matching fields in the edit-user form will be disabled.",
                   lbl_advanced_frag: "Advanced Fragment (fm JSON)", lbl_cipher_suites: "Cipher Suites (cs)", lbl_tls_mask: "TLS Mask (Custom SNI / Host)",
+                  lbl_sni_list: "Custom SNI List (one per line — builds a config per SNI)", hint_sni_list: "This list applies only to this node and is never pushed to linked nodes during Sync.",
                   lbl_fake_configs: "Subscription Fake Entries", desc_fake_configs: "Customize info entries shown in subscription profiles. Use {usage} and {expiry} for dynamic values.", btn_add_entry: "Add Entry",                   lbl_tg_token: "Telegram Bot Token", lbl_tg_chat: "Telegram Chat ID", lbl_tg_admin: "Authorized Telegram Admin ID", desc_tg_admin: "Only this Telegram User ID can manage the panel via bot. Leave empty to use Chat ID.", desc_tg_bot: "Set these values to receive login alerts via Telegram.",
                   lbl_cf_acc: "Cloudflare Account ID", lbl_cf_token: "Cloudflare API Token", desc_cf_api: "Optional: Monitor Worker daily usage limit (100k/day). Requires Account Analytics read permission.",
                   lbl_silent: "Silent UI Alerts", lbl_pause: "Kill Switch (Pause System)",
@@ -2443,6 +2449,7 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                   adv_optimize_title: "تنظیمات پیشرفته بهینه سازی", adv_optimize_badge: "مهم",
                   desc_optimize_global: "این تنظیمات به‌صورت سراسری برای تمام کاربران اعمال می‌شود و فیلدهای مشابه در فرم ویرایش کاربر غیرفعال خواهد شد.",
                   lbl_advanced_frag: "Advanced Fragment (fm JSON)", lbl_cipher_suites: "Cipher Suites (cs)", lbl_tls_mask: "TLS Mask (Custom SNI / Host)",
+                  lbl_sni_list: "لیست SNI سفارشی (هر خط یک SNI — برای هرکدام یک کانفیگ ساخته می‌شود)", hint_sni_list: "این لیست فقط روی همین نود اعمال می‌شود و هنگام Sync به نودهای دیگر ارسال نمی‌شود.",
                   lbl_fake_configs: "ورودی‌های اطلاعاتی اشتراک", desc_fake_configs: "متن نمایشی ورودی‌ها در پروفایل اشتراک را سفارشی کنید. از {usage} و {expiry} برای مقادیر پویا استفاده کنید.", btn_add_entry: "افزودن ورودی", lbl_tg_token: "توکن ربات تلگرام", lbl_tg_chat: "شناسه عددی تلگرام", lbl_tg_admin: "شناسه مدیر تلگرام", desc_tg_admin: "فقط این شناسه کاربری تلگرام می‌تواند پنل را از طریق ربات مدیریت کند. خالی بگذارید برای استفاده از شناسه چت.", desc_tg_bot: "با تنظیم این مقادیر، جزئیات ورود به پنل به تلگرام ارسال می‌شود.",
                   lbl_cf_acc: "شناسه اکانت ابری", lbl_cf_token: "توکن دسترسی کاربری", desc_cf_api: "اختیاری: برای نمایش میزان مصرف روزانه کارگر از صد هزار درخواست رایگان در پیام‌های تلگرام.",
                   lbl_silent: "هشدار و پیغام خاموش", lbl_pause: "کلید توقف اضطراری",
@@ -3465,6 +3472,7 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                    globalXrayExtra: el('cfg-xray-extra') ? el('cfg-xray-extra').value.trim() : '',
                    globalCipherSuites: el('cfg-cipher-suites') ? el('cfg-cipher-suites').value.trim() : '',
                    globalTlsMask: el('cfg-tls-mask') ? el('cfg-tls-mask').value.trim() : '',
+                   customSniList: el('cfg-sni-list') ? el('cfg-sni-list').value.split('\n').map(s=>s.trim()).filter(Boolean) : [],
                    tgToken: el('cfg-tg-token').value, tgChatId: el('cfg-tg-chat').value, tgAdminId: el('cfg-tg-admin').value,
                   cfAccountId: el('cfg-cf-acc').value, cfApiToken: el('cfg-cf-token').value,
                   cfWorkerName: el('cfg-cf-worker').value,
@@ -3527,6 +3535,7 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                       mapId('cfg-xray-extra', conf.globalXrayExtra || '');
                       mapId('cfg-cipher-suites', conf.globalCipherSuites || '');
                       mapId('cfg-tls-mask', conf.globalTlsMask || '');
+                      mapId('cfg-sni-list', Array.isArray(conf.customSniList) ? conf.customSniList.join('\n') : '');
                       if (typeof applyFixedIpLockUI === 'function') applyFixedIpLockUI();
 
                       mapId('cfg-tg-token', conf.tgToken);
@@ -3704,6 +3713,7 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                        if (document.getElementById('cfg-xray-extra')) document.getElementById('cfg-xray-extra').value = conf.globalXrayExtra || '';
                        if (document.getElementById('cfg-cipher-suites')) document.getElementById('cfg-cipher-suites').value = conf.globalCipherSuites || '';
                        if (document.getElementById('cfg-tls-mask')) document.getElementById('cfg-tls-mask').value = conf.globalTlsMask || '';
+                       if (document.getElementById('cfg-sni-list')) document.getElementById('cfg-sni-list').value = Array.isArray(conf.customSniList) ? conf.customSniList.join('\n') : '';
                        applyFixedIpLockUI();
                        if (document.getElementById('cfg-direct-configs')) document.getElementById('cfg-direct-configs').checked = conf.enableDirectConfigs || false;
                        if (document.getElementById('cfg-sync-api-key')) document.getElementById('cfg-sync-api-key').value = conf.syncApiKey || '';
@@ -3895,6 +3905,7 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                    globalXrayExtra: el('cfg-xray-extra') ? el('cfg-xray-extra').value.trim() : '',
                                             globalCipherSuites: el('cfg-cipher-suites') ? el('cfg-cipher-suites').value.trim() : '',
                                             globalTlsMask: el('cfg-tls-mask') ? el('cfg-tls-mask').value.trim() : '',
+                                            customSniList: el('cfg-sni-list') ? el('cfg-sni-list').value.split('\n').map(s=>s.trim()).filter(Boolean) : [],
                                             tgToken: el('cfg-tg-token').value, tgChatId: el('cfg-tg-chat').value, tgAdminId: el('cfg-tg-admin').value,
                                             cfAccountId: el('cfg-cf-acc').value, cfApiToken: el('cfg-cf-token').value,
                                             cfWorkerName: el('cfg-cf-worker').value,
@@ -3942,6 +3953,10 @@ proxyip.cmliussss.net" class="w-full px-4 py-3 rounded-xl border border-slate-20
                           // list stay local - never overwritten by the master.
                           delete slaveCfg.panelApiKeys; delete slaveCfg.linkedPanels; delete slaveCfg.slaveNodes; delete slaveCfg.syncApiKey;
                           delete slaveCfg.deviceId; delete slaveCfg.hubPanelUrl; delete slaveCfg.githubRepo; delete slaveCfg.customPanelUrl;
+                          // Custom SNI list is a per-node override for config
+                          // generation and must stay local - never pushed to
+                          // linked/slave nodes.
+                          delete slaveCfg.customSniList;
                           // Each node owns its own independent user list - never
                           // let this client-side sync (separate from the
                           // backend's own fan-out) push the master's users
